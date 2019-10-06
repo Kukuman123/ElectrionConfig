@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://bootswatch.com/3/flatly/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.jquery.min.js"></script>
+  <script src="https://twitter.github.io/typeahead.js/releases/latest/bloodhound.js"></script>
+  <script src="app.js"></script>
+  <script src="ele.js"></script>
+  <style>
+    #elements > .twitter-typeahead {
+      display: block !important;
+    }
+    .tt-menu {
+      min-width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 10px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) !important;
+      background-color: white;
+    }
+    .tt-suggestion {
+      padding: 5px;
+    }
+    .tt-selectable:hover {
+      border-radius: 5px;
+      background-color: gray;
+    }
+    .searchContainer {
+      border-radius: 50px;
+      padding-top: 100px;
+      padding-left: 75px;
+      padding-right: 75px;
+      padding-bottom: 85px;
+      background-color: white;
+      box-shadow: 0 1px 3px rgba(36,180,126,.4);
+    }
+    .mainContainer {
+      padding-top: 20px;
+      padding-bottom: 100px;
+      background: linear-gradient(150deg,#53f 15%,#05d5ff 70%,#a6ffcb 94%);
+    }
+  </style>
+  <title>Electron / Elements</title>
+</head>
+<body>
+  <div class="mainContainer">
+    <div class="container">
+      <h1 style="color: white;">Elements / Electron </h1>
+      <br />
+      <p style="color: white; font-size: 1.3em; letter-spacing: 0.12rem;">
+        This website is made to output the electron configuration of an element. Get this output by entering the number of electrons and the element name.
+      </p>
+    </div>
+    <p>&nbsp;</p>
+    <div class="container searchContainer">
+      <div class="row">
+        <div class="col-md-4">
+          <div id="elements">
+            <input class="typeahead form-control" type="text" placeholder="Elements" id="element-search-field">
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <button class="btn btn-primary" id="element-search-btn">Search</button>
+        </div>
+
+        <div class="col-md-4">
+          <div class="form-group">
+            <label class="sr-only">Electron</label>
+            <input type="text" class="form-control" placeholder="Electron" id="electron-search-field">
+          </div>
+          <div class="alert alert-warning" role="alert" id="electron-warning-box" style="display: none;">
+            <strong>Number cannot be grater then 54!</strong>
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <button class="btn btn-primary" id="electron-search-btn">Search</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  
+  <div class="detailContainer">
+    <div class="container text-center">
+      <h1 id="detailName" class="text-center">
+      </h1>
+
+      <br />
+
+      <div class="well">
+
+          <p id="elecName"></p>
+
+          <p id="number"></p>
+      </div>
+ 
+    </div>
+  </div>
+
+
+  <script>
+    const isDetailAreaOpen = false
+    const detail = {
+      elecConfig: '',
+      name: '',
+      number: ''
+    }
+
+    function displayDetail (data) {
+      $('#detailName').empty()
+      $('#elecName').empty()
+      $('#number').empty()
+
+      $('#detailName').append(data.name)
+      $('#elecName').append(data.elec_config)
+      $('#number').append(data.number)
+    }
+
+    $(document).ready(function() {
+      var elementsSource = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        prefetch: {
+            url: "PeriodicTableJSON.json",
+            filter: function(data){
+                return $.map(data, function(item){
+                    return { 'value': item.name };
+                });
+            }
+        }
+      })
+
+      elementsSource.initialize()
+
+      $('#elements .typeahead').typeahead({
+        hint: true,
+        highlight: true,
+        minLength: 1
+      }, {
+        displayKey: 'value',
+        source: elementsSource.ttAdapter()
+      })
+
+      $('#element-search-btn').click(() => {
+        let incomingElement = $('#element-search-field').val()
+        const element = filter(incomingElement)
+        let originalList
+        $.get('PeriodicTableJSON.json', (data) => {
+          originalList = data
+          let detailElement = {}
+          detailElement = originalList.find((i) => {
+            return i.name = incomingElement
+          })
+          Object.assign(detailElement, element)
+          displayDetail(detailElement)
+        })
+      })
+
+      $('#electron-search-btn').click(() => {
+        let incomingElectron = $('#electron-search-field').val()
+        const electron = filter(incomingElectron)
+        let originalList
+        $.get('PeriodicTableJSON.json', (data) => {
+          originalList = data
+          let detailElectron = {}
+          detailElectron = originalList.find((i) => {
+            return i.number = incomingElectron
+          })
+          Object.assign(detailElectron, electron)
+          displayDetail(detailElectron)
+        })
+      })
+
+      // Electron Component
+      $('#electron-search-field').keydown(function() {
+        $('#electron-warning-box').hide()
+      })
+
+      $('#electron-search-field').keyup(function() {
+        const incomingNumber = $('#electron-search-field').val()
+        if (incomingNumber > 54) {
+          $('#electron-warning-box').show()
+        }
+      })
+    })
+  </script>
+</body>
+</html>
