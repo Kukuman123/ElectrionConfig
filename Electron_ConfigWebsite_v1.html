@@ -95,13 +95,22 @@
 
       <br />
 
-      <div class="well">
-
-          <p id="elecName"></p>
-
-          <p id="number"></p>
+      <div class="col-md-6">
+        <div class="well">
+          <h3>Electron Configuration</h3>
+          <h1>
+            <span id="elecName" class="label label-success"></span>
+          </h1>
+        </div>
       </div>
- 
+      <div class="col-md-6">
+        <div class="well">
+          <h3>Number</h3>
+          <h1>
+            <span id="number" class="label label-info"></span>
+          </h1>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -115,6 +124,46 @@
     }
 
     function displayDetail (data) {
+      $('.detailContainer').show()
+
+      if (data.name === 'Hydrogen') {
+        data.number = 1
+      } 
+      if (data.name === 'Helium') {
+        data.number = 2
+      } 
+      if (data.name === 'Lithium') {
+        data.number = 3
+      } 
+      if (data.name === 'Beryllium') {
+        data.number = 4
+      } 
+      if (data.name === 'Boron') {
+        data.number = 5
+      } 
+      if (data.name === 'Carbo') {
+        data.number = 6
+      } 
+      if (data.name === 'Nitrogen') {
+        data.number = 7
+      } 
+      if (data.name === 'Oxygen') {
+        data.number = 8
+      } 
+      if (data.name === 'Fluorine') {
+        data.number = 9
+      } 
+      if (data.name === 'Neon') {
+        data.number = 10
+      } 
+      if (data.name === 'Sodium') {
+        data.number = 11
+      } 
+      if (data.name === 'Magnesium') {
+        data.number = 12
+      } 
+
+
       $('#detailName').empty()
       $('#elecName').empty()
       $('#number').empty()
@@ -125,6 +174,8 @@
     }
 
     $(document).ready(function() {
+      $('.detailContainer').hide()
+
       var elementsSource = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
